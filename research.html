@@ -49,12 +49,12 @@ trial, and dead end, with objective metrics.</p>
 <p class="sub">2026-07-07 · v1 → v7 · <a href="betacraft.html">↗ deep-dive on the final model (mar-hin-betacraft-tts)</a></p>
 
 <div class="toc"><b>Contents</b> &nbsp;
-<a href="#tldr">0 Summary</a><a href="#model">1 Model choice</a><a href="#hist">2 Versions v1–v6</a>
-<a href="#v7">3 v7 synthetic pivot</a><a href="#trials">4 Post-training trials</a>
-<a href="#scoreboard">5 Metrics scoreboard</a><a href="#eval">6 Evaluation method</a>
-<a href="#infra">7 Infrastructure</a><a href="#concl">8 Conclusions</a></div>
+<a href="#tldr">1 Summary</a><a href="#model">2 Model choice</a><a href="#hist">3 Versions v1–v6</a>
+<a href="#v7">4 v7 synthetic pivot</a><a href="#trials">5 Post-training trials</a>
+<a href="#scoreboard">6 Metrics scoreboard</a><a href="#eval">7 Evaluation method</a>
+<a href="#infra">8 Infrastructure</a><a href="#concl">9 Conclusions</a></div>
 
-<h2 id="tldr">0 · Summary</h2>
+<h2 id="tldr">1 · Summary</h2>
 <ul>
 <li><b>7 fine-tunes</b> of <code>ai4bharat/indic-parler-tts</code>. <b>v6</b> was the best <i>scraped-data</i>
 baseline; <b>v7 (mar-hin-betacraft-tts)</b> reproduces it on <b>copyright-safe synthetic</b> data.</li>
@@ -66,7 +66,7 @@ hours or steps (v2/v3 had the most data + steps yet sounded worst).</li>
 one-shot cloning (WER 85.5% — broken). Decoding at <b>temp 0.7</b> remains the best available lever.</li>
 </ul>
 
-<h2 id="model">1 · Model selection — why Indic Parler-TTS</h2>
+<h2 id="model">2 · Model selection — why Indic Parler-TTS</h2>
 <p>We chose <b>ai4bharat/indic-parler-tts</b> (0.9B, Apache-2.0): it natively supports Marathi &amp; Hindi
 with <b>named built-in speakers</b> (Sunita, Divya…) and <b>caption-driven style control</b> ("expressive,
 warm, storytelling… very clear audio"), it is <b>commercially licensable</b> (unlike training on a
@@ -75,7 +75,7 @@ proprietary API's output), and it fine-tunes on modest data. Architecture: autor
 (no mel/GAN loss). Baselines we compared against (below): the <b>pretrained</b> Indic-Parler, Meta
 <b>MMS</b>, and <b>IndicF5</b>.</p>
 
-<h2 id="hist">2 · Version history (v1 → v6)</h2>
+<h2 id="hist">3 · Version history (v1 → v6)</h2>
 <p>All on the same base model. <b>v4 was skipped</b> (no run under that label; attempts were merged as
 v2/v3, one of which crashed on disk).</p>
 <table>
@@ -88,7 +88,7 @@ v2/v3, one of which crashed on disk).</p>
 </table>
 <p style="font-size:13px;color:var(--mut)">*WER here is the <b>English-Whisper</b> in-training metric —
 unreliable for Devanagari in absolute terms; read the <b>relative</b> trend (v6 first below 100). The
-<b>reliable</b> Sarvam WER is in §5. Also, eval/loss is <b>not comparable across runs</b> (each has a
+<b>reliable</b> Sarvam WER is in §6. Also, eval/loss is <b>not comparable across runs</b> (each has a
 different, differently-hard held-out set — v1's low 4.273 reflects its tiny easy set, not superiority).</p>
 
 <h3>What each version sounded like (human ear) + audio</h3>
@@ -111,11 +111,11 @@ Sunita clear; sub-100 WER for the first time." Divya's Hindi is called the stand
 <div class="au"><div class="t">Gemini-Sulafat (teacher / ceiling)</div><div class="d">the voice v7 distils</div><audio controls preload="none" src="audio/gemini_sulafat_marathi.mp3"></audio></div>
 </div>
 
-<h2 id="v7">3 · v7 — the copyright-safe synthetic pivot</h2>
+<h2 id="v7">4 · v7 — the copyright-safe synthetic pivot</h2>
 <p>Scraped audio (the v1–v6 data) is a legal risk for a commercial product. v7 regenerates everything
 <b>synthetically</b>: Gemini writes stories → <b>Gemini-TTS "Sulafat"</b> voices them → we fine-tune Parler
 on those clean pairs. Result: <b>v7 wins on codebook-0 (2.768 vs v6 3.254)</b> and matches CLAP, and — most
-importantly — its <b>reliable Sarvam WER is excellent</b> (§5). Full detail:
+importantly — its <b>reliable Sarvam WER is excellent</b> (§6). Full detail:
 <a href="betacraft.html">the mar-hin-betacraft-tts technical report</a>.</p>
 <div class="grid2">
 <div class="au"><div class="t">v7 BEFORE — temp 1.0</div><div class="d">buzz + timbre drift</div><audio controls preload="none" src="audio/betacraft_kawda_temp1.mp3"></audio></div>
@@ -124,10 +124,10 @@ importantly — its <b>reliable Sarvam WER is excellent</b> (§5). Full detail:
 <div class="note"><b>What I heard by ear (v7):</b> the initial outputs had <b>buzzing trails</b> at sentence
 ends and <b>voice-timbre drift on every sentence</b>. The <b>buzz was removed by lowering temperature to
 0.7</b> (from the default 1.0) + a fixed seed + a trailing fade. The residual timbre drift is architectural
-(see §4).</div>
+(see §5).</div>
 
-<h2 id="trials">4 · Post-training trials — fixing buzz &amp; drift (with reasons)</h2>
-<h3>4.1 Temperature / decoding sweep</h3>
+<h2 id="trials">5 · Post-training trials — fixing buzz &amp; drift (with reasons)</h2>
+<h3>5.1 Temperature / decoding sweep</h3>
 <p>Each sentence is generated independently; the default temp 1.0 gave buzz + drift. We swept the decoding
 settings. <b>Finding: 0.7 is the stable optimum</b> — anything that constrains the distribution further
 makes the model fail to stop (runaway buzzy tails):</p>
@@ -145,13 +145,13 @@ fade — same final sentence, before vs after:</p>
 <div class="grid2"><div class="au"><div class="t">BEFORE — trailing buzz</div><div class="d">sharp hiss tail</div><audio controls preload="none" src="audio/buzz_seed42.mp3"></audio></div><div class="au"><div class="t">AFTER — buzz removed</div><div class="d">seed + temp fix</div><audio controls preload="none" src="audio/clean_seed7.mp3"></audio></div></div>
 <div class="grid2"><div class="au"><div class="t">Buzzy — temp 0.5</div><div class="d">tails return</div><audio controls preload="none" src="audio/betacraft_kawda_temp05_buzzy.mp3"></audio></div><div class="au"><div class="t">Good — superhero temp 0.7</div><div class="d"></div><audio controls preload="none" src="audio/betacraft_superhero_temp07.mp3"></audio></div></div>
 
-<h3>4.2 Text sanitisation &amp; trailing fade</h3>
+<h3>5.2 Text sanitisation &amp; trailing fade</h3>
 <p>A story <b>title with markdown/dash</b> (<code>**राजू – …**</code>) was fed verbatim to the model,
 which dropped "राजू" and hallucinated "बाघ". Fix: strip markup before synthesis. A <b>120 ms trailing
 raised-cosine fade</b> then lets any residual end-of-sentence hiss decay smoothly instead of cutting off as
 a "buzz". Both are in the narration script.</p>
 
-<h3>4.3 FreeVC voice-conversion (Coqui) — rejected</h3>
+<h3>5.3 FreeVC voice-conversion (Coqui) — rejected</h3>
 <p><b>Idea:</b> post-process the Parler audio through a zero-shot voice converter (FreeVC + WavLM) to force
 every sentence onto <b>one reference timbre</b>, killing drift without retraining. <b>Result:</b> it did
 normalise the voice and even topped the signal metrics (STOI 0.998, PESQ
@@ -161,7 +161,7 @@ WavLM is English-biased, and a short reference gives a weak, averaged timbre. <b
 lifeless → rejected.</b></p>
 <div class="au"><div class="t">FreeVC output (Parler 0.7 → Sulafat reference)</div><div class="d">consistent but flat/soft</div><audio controls preload="none" src="audio/trial_freevc.mp3"></audio></div>
 
-<h3>4.4 IndicF5 one-shot cloning — rejected</h3>
+<h3>5.4 IndicF5 one-shot cloning — rejected</h3>
 <p><b>Idea:</b> IndicF5 (AI4Bharat's Indic F5-TTS) is Indic-native <b>and</b> clones a reference voice for
 every sentence — consistent by design. <b>Result:</b> a version mismatch between the installed
 <code>f5_tts</code> and the checkpoint left the GRN normalisation layers randomly initialised. The output
@@ -170,7 +170,7 @@ gibberish: WER 85.5%.</b> A textbook case of <b>naturalness ≠ intelligibility.
 rejected</b> in this configuration (a matching f5_tts pin would be the retry).</p>
 <div class="au"><div class="t">IndicF5 output (Sulafat clone) — broken config</div><div class="d">sounds fluent, wrong words (WER 85.5%)</div><audio controls preload="none" src="audio/trial_indicf5.mp3"></audio></div>
 
-<h3 id="drift">4.5 Measuring the voice drift (speaker-cosine consistency)</h3>
+<h3 id="drift">5.5 Measuring the voice drift (speaker-cosine consistency)</h3>
 <p>The sentence-to-sentence <b>timbre drift</b> — the project's #1 open problem — is quantified with
 <b>speaker-embedding cosine consistency</b> (Resemblyzer): windowed voiceprints within one story, averaged
 pairwise. Higher = steadier voice. The teacher is the ceiling; <b>FreeVC (which forces one voice) nearly
@@ -192,7 +192,7 @@ drift — its cost is expressiveness (flat). Decoding barely moves consistency (
 fix is a <b>consistent-by-design model</b> (a correctly-installed IndicF5) or a calmer-data retrain, not
 decoding.</div>
 
-<h2 id="scoreboard">5 · Objective metrics — reliable scoreboard</h2>
+<h2 id="scoreboard">6 · Objective metrics — reliable scoreboard</h2>
 <p>Sarvam Saaras (Indic-native STT) WER/CER against the known script, plus reference-free SQUIM + UTMOS.
 This replaces the unreliable English-Whisper WER used inside training.</p>
 <table>
@@ -208,7 +208,7 @@ This replaces the unreliable English-Whisper WER used inside training.</p>
 IndicF5 has the best UTMOS yet the worst WER. Always pair them. WER is the primary quality gate for a
 narrator; UTMOS/SQUIM are secondary signal-quality checks.</div>
 
-<h2 id="eval">6 · Evaluation methodology</h2>
+<h2 id="eval">7 · Evaluation methodology</h2>
 <table>
 <tr><th class="l">Metric</th><th class="l">Tool</th><th class="l">What it measures</th></tr>
 <tr><td class="l">WER / CER</td><td class="l">Sarvam Saaras STT (mr-IN / hi-IN), vs known input script</td><td class="l">Intelligibility — the primary, Indic-reliable "accuracy" number (NOT English Whisper)</td></tr>
@@ -218,7 +218,7 @@ narrator; UTMOS/SQUIM are secondary signal-quality checks.</div>
 <tr><td class="l">Human listening</td><td class="l">the project's ear notes (per version above)</td><td class="l">The final arbiter — captured verbatim across v1–v7</td></tr>
 </table>
 
-<h2 id="infra">7 · Infrastructure &amp; effort (with reasons)</h2>
+<h2 id="infra">8 · Infrastructure &amp; effort (with reasons)</h2>
 <ul>
 <li><b>Training — RunPod GPU.</b> v7 ran on an <b>RTX A5000 (24 GB, $0.27/hr)</b>, chosen over an L4
 ($0.39/hr) because the bf16 recipe was tuned for 24 GB and the A5000 is cheaper; 16 GB cards were rejected
@@ -233,7 +233,7 @@ WavLM checkpoints — fixed by pulling verified copies from GitHub's release CDN
 batch regeneration to a GPU.</b></li>
 </ul>
 
-<h2 id="concl">8 · Conclusions &amp; next steps</h2>
+<h2 id="concl">9 · Conclusions &amp; next steps</h2>
 <ul>
 <li><b>v7 (mar-hin-betacraft-tts) is a success on its core thesis:</b> copyright-safe <b>synthetic data
 matched the scraped-data baseline</b> and delivered Marathi intelligibility (WER 2.6%) on par with
@@ -244,6 +244,11 @@ fix it; FreeVC (flat) and IndicF5 (broken config) didn't win. <b>Next:</b> (a) r
 <code>f5_tts</code> version — it's Indic-native and consistent-by-design, the most promising path; (b)
 strengthen Hindi with more data; (c) run VC/regeneration on a GPU, not the 8 GB Mac.</li>
 </ul>
+<p style="color:var(--mut);font-size:13.5px;border-top:1px solid var(--line);padding-top:14px;margin-top:22px">
+<b>Footnote — IndicF5 one-shot cloning (tried as a voice-consistency alternative on the fine-tuned model):</b>
+in its current mis-versioned install it <b>mangles rather than narrates</b>. A clean-text re-test on the full
+crow story confirmed the failure is the <i>install</i>, not the input (WER 97.4%, output ~half the expected
+duration). The approach stays promising once the environment is pinned correctly.</p>
 
 <footer>Generated 2026-07-07 · Indic Parler-TTS fine-tuning research · metrics: Sarvam Saaras WER/CER,
 TorchAudio SQUIM (STOI/PESQ/SI-SDR), UTMOS22, W&amp;B. Audio is 96 kbps mono MP3.</footer>
