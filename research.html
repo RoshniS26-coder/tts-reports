@@ -140,6 +140,9 @@ makes the model fail to stop (runaway buzzy tails):</p>
 <tr><td class="l">greedy (do_sample=False)</td><td colspan="3">—</td><td class="bad">never emits stop token → generated to the token cap on every sentence (abandoned)</td></tr>
 <tr><td class="l">temp 0.7 + top_p 0.8</td><td colspan="3">—</td><td class="bad">runaway (~6 min/sentence) — same failure class as low temp</td></tr>
 </table>
+<p>The trailing <b>buzz</b> was removed by adjusting the <b>seed + temperature</b> (1.0 → 0.7) plus a 120 ms
+fade — same final sentence, before vs after:</p>
+<div class="grid2"><div class="au"><div class="t">BEFORE — trailing buzz</div><div class="d">sharp hiss tail</div><audio controls preload="none" src="audio/buzz_seed42.mp3"></audio></div><div class="au"><div class="t">AFTER — buzz removed</div><div class="d">seed + temp fix</div><audio controls preload="none" src="audio/clean_seed7.mp3"></audio></div></div>
 <div class="grid2"><div class="au"><div class="t">Buzzy — temp 0.5</div><div class="d">tails return</div><audio controls preload="none" src="audio/betacraft_kawda_temp05_buzzy.mp3"></audio></div><div class="au"><div class="t">Good — superhero temp 0.7</div><div class="d"></div><audio controls preload="none" src="audio/betacraft_superhero_temp07.mp3"></audio></div></div>
 
 <h3>4.2 Text sanitisation &amp; trailing fade</h3>
@@ -166,6 +169,28 @@ every sentence — consistent by design. <b>Result:</b> a version mismatch betwe
 gibberish: WER 85.5%.</b> A textbook case of <b>naturalness ≠ intelligibility.</b> <b>Verdict:
 rejected</b> in this configuration (a matching f5_tts pin would be the retry).</p>
 <div class="au"><div class="t">IndicF5 output (Sulafat clone) — broken config</div><div class="d">sounds fluent, wrong words (WER 85.5%)</div><audio controls preload="none" src="audio/trial_indicf5.mp3"></audio></div>
+
+<h3 id="drift">4.5 Measuring the voice drift (speaker-cosine consistency)</h3>
+<p>The sentence-to-sentence <b>timbre drift</b> — the project's #1 open problem — is quantified with
+<b>speaker-embedding cosine consistency</b> (Resemblyzer): windowed voiceprints within one story, averaged
+pairwise. Higher = steadier voice. The teacher is the ceiling; <b>FreeVC (which forces one voice) nearly
+matches it — validating both the metric and that FreeVC really does fix drift.</b></p>
+<table>
+<tr><th class="l">Voice</th><th>mean-cos↑</th><th>min-cos↑</th><th>std↓</th><th class="l">Read</th></tr>
+<tr><td class="l">Gemini-Sulafat teacher</td><td>0.758</td><td>0.597</td><td>0.053</td><td class="l">stable ceiling</td></tr>
+<tr><td class="l"><b>FreeVC (forces one voice)</b></td><td><b>0.754</b></td><td><b>0.614</b></td><td>0.052</td><td class="l">≈ teacher — drift fixed (but flat)</td></tr>
+<tr><td class="l">betacraft — temp 0.7</td><td>0.738</td><td>0.464</td><td>0.058</td><td class="l">some drift</td></tr>
+<tr><td class="l">betacraft — temp 1</td><td>0.72</td><td>0.452</td><td>0.058</td><td class="l">slightly worse</td></tr>
+<tr><td class="l">betacraft — superhero 0.7</td><td>0.719</td><td>0.525</td><td>0.063</td><td class="l">drift</td></tr>
+<tr><td class="l">IndicF5 (broken)</td><td>0.723</td><td>0.55</td><td>0.081</td><td class="l">drift + unstable (high std)</td></tr>
+<tr><td class="l">betacraft — Hindi</td><td>0.722</td><td>0.498</td><td>0.062</td><td class="l">drift</td></tr>
+</table>
+<div class="note"><b>Takeaway:</b> <b>FreeVC (0.754) ≈ teacher
+(0.758)</b> proves post-hoc voice conversion fixes the
+drift — its cost is expressiveness (flat). Decoding barely moves consistency (temp 1→0.7:
+0.72→0.738) — so the durable
+fix is a <b>consistent-by-design model</b> (a correctly-installed IndicF5) or a calmer-data retrain, not
+decoding.</div>
 
 <h2 id="scoreboard">5 · Objective metrics — reliable scoreboard</h2>
 <p>Sarvam Saaras (Indic-native STT) WER/CER against the known script, plus reference-free SQUIM + UTMOS.

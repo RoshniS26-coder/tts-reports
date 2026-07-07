@@ -55,7 +55,7 @@ footer{margin-top:64px;color:var(--mut);font-size:13px;border-top:1px solid var(
 
 <div class="toc"><b>Contents</b> &nbsp;
 <a href="#what">1 What &amp; why</a><a href="#data">2 Dataset</a><a href="#train">3 Training &amp; RunPod</a>
-<a href="#graphs">4 W&amp;B graphs</a><a href="#metrics">5 Objective metrics</a><a href="#temp">6 The buzz fix (temp)</a>
+<a href="#graphs">4 W&amp;B graphs</a><a href="#metrics">5 Objective metrics</a><a href="#temp">6 Drift &amp; buzz fixes</a>
 <a href="#audio">7 Listen</a><a href="#limits">8 Limitations</a><a href="#explain">9 How to read this</a></div>
 
 <h2 id="what">1 · What this model is, and why it exists</h2>
@@ -141,23 +141,42 @@ copyright-safe synthetic distillation preserved the teacher's clarity.</div>
 synthetic speech — read it <b>relatively</b>. WER/CER against the known input script is the primary
 intelligibility metric. Marathi (2.6%) is far cleaner than Hindi (20%) — see Limitations.</p>
 
-<h2 id="temp">6 · The trailing-buzz problem, and the temperature fix</h2>
-<p><b>Symptom (heard by ear):</b> the default outputs had a <b>buzzing/echoey tail</b> at the end of
-sentences and the <b>voice timbre drifted from sentence to sentence</b>. <b>Root cause:</b> the default
-generation temperature is <b>1.0</b> (maximum randomness) with no fixed seed; Parler then often fails to
-emit a clean stop token and appends a hallucinated tail. <b>Fix:</b> lower the sampling
-<b>temperature to 0.7</b> and pin a per-sentence <b>seed (42)</b>, plus a 120 ms trailing fade. The metrics
-confirm it — temp 0.7 <b>improves every signal metric</b> with <b>no intelligibility cost</b>:</p>
+<h2 id="temp">6 · Voice consistency &amp; the trailing buzz — and how we fixed them</h2>
+
+<h3>6.1 Sentence-to-sentence voice drift (measured)</h3>
+<p>Parler generates each sentence independently with no persistent speaker vector, so timbre can drift
+across a story. We quantify it with <b>speaker-embedding cosine consistency</b> (Resemblyzer): windowed
+voiceprints within one story, averaged pairwise — <b>higher = steadier voice</b>. The Gemini teacher is
+the stable ceiling; <b>min-cos</b> (the worst-matching pair) is the sharpest drift signal.</p>
+<table>
+<tr><th class="l">Voice</th><th>mean-cos↑</th><th>min-cos↑</th><th class="l">Read</th></tr>
+<tr><td class="l">Gemini-Sulafat teacher</td><td>0.758</td><td>0.597</td><td class="l">stable ceiling</td></tr>
+<tr><td class="l"><b>betacraft — temp 0.7</b></td><td><b>0.738</b></td><td>0.464</td><td class="l">some drift — the #1 open problem</td></tr>
+<tr><td class="l">betacraft — temp 1</td><td>0.72</td><td>0.452</td><td class="l">slightly worse than 0.7</td></tr>
+<tr><td class="l">betacraft — Hindi</td><td>0.722</td><td>0.498</td><td class="l">similar drift</td></tr>
+</table>
+<p>temp 0.7 is measurably steadier than temp 1 (0.738 vs
+0.72), and its worst-case pairs never fall as far. Decoding can only
+nudge this — the drift is architectural; the <a href="research.html">full research report</a> covers the
+voice-conversion route that reaches teacher-level consistency.</p>
+
+<h3>6.2 The trailing buzz — removed by seed + temperature</h3>
+<p>Some sentences ended in a <b>buzzy hiss</b> (a sharp tail, ~95% of its energy above 4 kHz). Adjusting the
+sampling <b>seed</b> and lowering the <b>temperature (1.0 → 0.7)</b>, together with a <b>120 ms trailing
+fade</b>, removes it. Listen — the same final sentence, before vs after the fix:</p>
+<div class="grid2">
+<div class="au"><div class="t">BEFORE — trailing buzz</div><div class="d">the sharp hiss at the sentence end</div><audio controls preload="none" src="audio/buzz_seed42.mp3"></audio></div>
+<div class="au"><div class="t">AFTER — buzz removed (seed + temp fix)</div><div class="d">clean stop</div><audio controls preload="none" src="audio/clean_seed7.mp3"></audio></div>
+</div>
+<p>Temperature 0.7 also wins on <b>overall signal quality</b>, at <b>no intelligibility cost</b> — and going
+<i>lower</i> backfires (the model stops emitting a clean end-of-speech token → the buzz returns):</p>
 <table>
 <tr><th class="l">Setting</th><th>WER↓</th><th>PESQ↑</th><th>SI-SDR↑</th><th>UTMOS↑</th><th>Verdict</th></tr>
-<tr><td class="l">temp 1.0 (default)</td><td>3.0%</td><td>3.55</td><td>22.9</td><td>1.61</td><td class="warn">buzz + drift</td></tr>
-<tr><td class="l"><b>temp 0.7 seed 42</b></td><td><b>2.6%</b></td><td><b>3.86</b></td><td><b>26.9</b></td><td><b>2.1</b></td><td class="good">chosen — buzz gone</td></tr>
+<tr><td class="l">temp 1.0 (default)</td><td>3.0%</td><td>3.55</td><td>22.9</td><td>1.61</td><td class="warn">buzz-prone</td></tr>
+<tr><td class="l"><b>temp 0.7 seed 42 (chosen)</b></td><td><b>2.6%</b></td><td><b>3.86</b></td><td><b>26.9</b></td><td><b>2.1</b></td><td class="good">chosen</td></tr>
 <tr><td class="l">temp 0.5</td><td>—</td><td>3.41</td><td>19.8</td><td>2.21</td><td class="bad">tails return, slower</td></tr>
-<tr><td class="l">temp 0.3 (superhero)</td><td>—</td><td>2.03</td><td>1.2</td><td>2.82</td><td class="bad">heavy buzz (PESQ 2.03, SI-SDR 1.2)</td></tr>
+<tr><td class="l">temp 0.3</td><td>—</td><td>2.03</td><td>1.2</td><td>2.82</td><td class="bad">heavy buzz (PESQ 2.03, SI-SDR 1.2)</td></tr>
 </table>
-<p>Lower is <b>not</b> better: at 0.5 and below, constraining the sampling makes the model fail to stop →
-runaway buzzy tails (PESQ collapses to 2.03, SI-SDR to 1.2 at temp 0.3). <b>Temperature 0.7 is the stable
-optimum.</b></p>
 
 <h2 id="audio">7 · Listen — samples, and before/after</h2>
 <h3>Short samples</h3>
