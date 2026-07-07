@@ -1,0 +1,203 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>mar-hin-betacraft-tts — Technical Report</title>
+<style>
+:root{--bg:#fff;--fg:#1c2128;--mut:#57606a;--card:#f6f8fa;--line:#d0d7de;--acc:#0969da;
+--good:#1a7f37;--warn:#9a6700;--bad:#cf222e;--code:#eff1f3;--th:#eaeef2}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;--card:#161b22;
+--line:#30363d;--acc:#4493f8;--good:#3fb950;--warn:#d29922;--bad:#f85149;--code:#161b22;--th:#161b22}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:40px 22px 100px}
+h1{font-size:30px;line-height:1.2;margin:0 0 6px}
+h2{font-size:23px;margin:46px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+h3{font-size:18px;margin:28px 0 8px}
+.sub{color:var(--mut);font-size:15px;margin:2px 0}
+.pill{display:inline-block;padding:3px 11px;border-radius:999px;font-size:12.5px;font-weight:600;
+background:var(--card);border:1px solid var(--line);margin:3px 5px 3px 0}
+.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}b{font-weight:650}
+p{margin:11px 0}ul,ol{margin:11px 0;padding-left:24px}li{margin:6px 0}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;white-space:nowrap;vertical-align:top}
+th{background:var(--th);font-weight:650}
+td.l,th.l{white-space:normal;min-width:190px}
+tr:nth-child(even) td{background:color-mix(in srgb,var(--card) 55%,transparent)}
+code{background:var(--code);border:1px solid var(--line);padding:1px 6px;border-radius:5px;font-size:13px}
+figure{margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+figure img{width:100%;height:auto;border-radius:6px;display:block}
+figcaption{color:var(--mut);font-size:13.5px;margin-top:9px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:16px 0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin:18px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.kpi .v{font-size:25px;font-weight:700;line-height:1}.kpi .l{color:var(--mut);font-size:12.5px;margin-top:5px}
+.note{border-left:4px solid var(--warn);background:color-mix(in srgb,var(--warn) 9%,transparent);
+padding:11px 15px;border-radius:0 8px 8px 0;margin:16px 0;font-size:14.5px}
+.ok{border-left-color:var(--good);background:color-mix(in srgb,var(--good) 10%,transparent)}
+.badnote{border-left-color:var(--bad);background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.au{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin:9px 0}
+.au .t{font-size:13.5px;font-weight:600;margin-bottom:6px}.au .d{color:var(--mut);font-size:12.5px;margin-bottom:7px}
+audio{width:100%;height:34px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px;margin:20px 0;font-size:14.5px}
+.toc a{display:inline-block;margin:3px 14px 3px 0}
+footer{margin-top:64px;color:var(--mut);font-size:13px;border-top:1px solid var(--line);padding-top:18px}
+.big{font-size:34px}
+</style></head><body><div class="wrap">
+<h1>Technical Report — <code>mar-hin-betacraft-tts</code></h1>
+<p class="sub">A copyright-safe, synthetic-data fine-tune of Indic Parler-TTS for Marathi &amp; Hindi children's-story narration</p>
+<p class="sub">2026-07-07 · Model v7 of the project · <a href="research.html">↗ see the full research report (all versions &amp; trials)</a></p>
+<p>
+<span class="pill">Base: ai4bharat/indic-parler-tts (0.9B)</span>
+<span class="pill">Speakers: Sunita (MR) · Divya (HI)</span>
+<span class="pill">W&amp;B run: true-salad-29</span>
+<span class="pill">HF (private): roshni-sorigin/mar-hin-betacraft-tts</span>
+</p>
+
+<div class="toc"><b>Contents</b> &nbsp;
+<a href="#what">1 What &amp; why</a><a href="#data">2 Dataset</a><a href="#train">3 Training &amp; RunPod</a>
+<a href="#graphs">4 W&amp;B graphs</a><a href="#metrics">5 Objective metrics</a><a href="#temp">6 The buzz fix (temp)</a>
+<a href="#audio">7 Listen</a><a href="#limits">8 Limitations</a><a href="#explain">9 How to read this</a></div>
+
+<h2 id="what">1 · What this model is, and why it exists</h2>
+<p>Earlier project models (v1–v6) were trained on <b>scraped / YouTube</b> narration, which carries
+<b>copyright risk</b> for a commercial kids-content product. <code>mar-hin-betacraft-tts</code> replaces that
+data with a <b>fully synthetic, copyright-safe</b> corpus: original stories are written by Gemini, then
+voiced by <b>Gemini-TTS Pro (voice "Sulafat")</b> to produce clean <code>(audio, text)</code> pairs, on which
+we fine-tune the Apache-2.0 Indic Parler-TTS model. Expressiveness transfers through the <b>audio</b>; a
+single name-anchored caption selects the voice (<b>Sunita</b> = Marathi, <b>Divya</b> = Hindi). This is a
+<b>knowledge-distillation</b> setup: Gemini-Sulafat is the teacher, our Parler model is the student.</p>
+<div class="note">Treated as <b>research / PoC</b> until the Gemini Terms-of-Service "no competing model"
+clause is cleared or narration is commissioned. The base model (Indic Parler, Apache-2.0) is unaffected.</div>
+
+<h2 id="data">2 · Dataset</h2>
+<table>
+<tr><th class="l">Field</th><th>Value</th></tr>
+<tr><td class="l">Speakers</td><td>Sunita = Marathi, Divya = Hindi (chosen by caption name)</td></tr>
+<tr><td class="l">Source</td><td>100% synthetic — Gemini-TTS Pro, voice Sulafat (24 kHz mono); transcript = exact input text → perfect alignment</td></tr>
+<tr><td class="l">Composition</td><td>Sunita 1,770 clips (5.21 h) + Divya 1,510 clips (3.29 h)</td></tr>
+<tr><td class="l">Split</td><td><b>train 3,213 / test 67</b> (2% per-speaker then merged → test covers both voices), <b>8.51 h</b></td></tr>
+<tr><td class="l">Caption (byte-identical train↔inference)</td><td>"{name} narrates a children's story in an expressive, warm, animated storytelling tone with emotional variation, at a moderate pace. Very clear audio with no background noise."</td></tr>
+</table>
+
+<h2 id="train">3 · Training &amp; the RunPod configuration (and why)</h2>
+<p>Training is a manual <code>accelerate</code> loop over DAC audio-codec tokens (cross-entropy objective;
+<b>no</b> mel-spectrogram or GAN loss — those belong to other TTS architectures).</p>
+<div class="kpis">
+  <div class="kpi"><div class="v">RTX A5000</div><div class="l">24 GB GPU · $0.27/hr</div></div>
+  <div class="kpi"><div class="v">4</div><div class="l">epochs (~400 steps)</div></div>
+  <div class="kpi"><div class="v">~27 min</div><div class="l">train time (+~5 min eval)</div></div>
+  <div class="kpi"><div class="v">&lt; $1</div><div class="l">total run cost</div></div>
+</div>
+<p><b>Why the RTX A5000 (24 GB):</b> the config is bf16 and sized for 24 GB (effective batch 32 = batch 4 ×
+grad-accum 8). We deliberately avoided 16 GB cards and T4/V100 (no native bf16 → OOM). The A5000 was
+chosen over an equivalent L4 because it is <b>cheaper ($0.27 vs $0.39/hr)</b> and is exactly what the
+recipe was tuned on. Recipe: 4 epochs · lr 1e-4 cosine · warmup 50 · bf16 · frozen Flan-T5 text encoder ·
+<code>save_steps 100000</code> (no mid-run checkpoints — avoids the transient 2× disk spike that crashed
+earlier runs; the final model auto-saves once at the end).</p>
+
+<h2 id="graphs">4 · Training graphs (W&amp;B run <code>true-salad-29</code>)</h2>
+<div class="kpis">
+  <div class="kpi"><div class="v">4.407</div><div class="l">eval/loss <span class="good">↓ vs v6 4.472</span></div></div>
+  <div class="kpi"><div class="v">2.768</div><div class="l">codebook-0 eval <span class="good">↓ vs v6 3.254</span></div></div>
+  <div class="kpi"><div class="v">0.360</div><div class="l">CLAP <span class="warn">≈ v6 0.367</span></div></div>
+  <div class="kpi"><div class="v">0.17</div><div class="l">final grad-norm (stable)</div></div>
+</div>
+<figure><img src="charts/01_loss.png"><figcaption><b>Train vs eval loss.</b> Cross-entropy over audio
+tokens. Train falls 4.5→~4.0; eval tracks it down and never turns up → <b>no overfitting</b>.</figcaption></figure>
+<div class="grid2">
+<figure><img src="charts/04_codebook0.png"><figcaption><b>Codebook 0</b> (coarsest, most audible layer) —
+eval 2.768 / train 2.463; small gap = not overfit, and below v6's 3.254.</figcaption></figure>
+<figure><img src="charts/05_codebooks_bar.png"><figcaption><b>Per-codebook final eval loss.</b> The audio
+codec stores 1 s of sound as 9 layers; codebook 0 (blue) matters most, higher layers are fine detail.</figcaption></figure>
+</div>
+<div class="grid2">
+<figure><img src="charts/02_lr.png"><figcaption><b>LR schedule</b> — warmup to 1e-4 by step 50, then
+cosine decay to ~0. Textbook.</figcaption></figure>
+<figure><img src="charts/03_gradnorm.png"><figcaption><b>Gradient norm</b> — bounded, no spikes; a stable
+optimisation.</figcaption></figure>
+</div>
+
+<h2 id="metrics">5 · Objective metrics (the reliable ones)</h2>
+<p>The WER logged <i>inside</i> W&amp;B uses an English Whisper model that mis-scores Devanagari, so we
+computed the <b>trustworthy</b> numbers offline: <b>WER/CER via Sarvam Saaras STT</b> (Indic-native), and
+reference-free <b>SQUIM</b> (STOI/PESQ/SI-SDR) + <b>UTMOS</b> (predicted MOS).</p>
+<div class="kpis">
+  <div class="kpi"><div class="v big good">2.6%</div><div class="l">Sarvam WER, Marathi (temp 0.7)<br>teacher = 4.5%</div></div>
+  <div class="kpi"><div class="v">20.0%</div><div class="l">Sarvam WER, Hindi</div></div>
+  <div class="kpi"><div class="v">2.1</div><div class="l">UTMOS (temp 0.7)<br>teacher = 3.08</div></div>
+  <div class="kpi"><div class="v">3.86</div><div class="l">PESQ (temp 0.7)</div></div>
+</div>
+<div class="note ok"><b>Headline:</b> on Marathi intelligibility the student <b>essentially matches the
+teacher</b> — Sarvam WER <b>2.6%</b> (temp 0.7) vs Gemini-Sulafat's <b>4.5%</b>. The
+copyright-safe synthetic distillation preserved the teacher's clarity.</div>
+<table>
+<tr><th class="l">Audio</th><th>Sarvam WER↓</th><th>CER↓</th><th>STOI↑</th><th>PESQ↑</th><th>SI-SDR↑</th><th>UTMOS↑</th></tr>
+<tr><td class="l">Gemini-Sulafat (teacher / ceiling)</td><td>4.5%</td><td>0.4%</td><td>0.992</td><td>3.79</td><td>25.0</td><td>3.08</td></tr>
+<tr><td class="l">betacraft — kawda, temp 1 (default)</td><td>3.0%</td><td>0.8%</td><td>0.989</td><td>3.55</td><td>22.9</td><td>1.61</td></tr>
+<tr><td class="l"><b>betacraft — kawda, temp 0.7 seed 42</b></td><td><b>2.6%</b></td><td>0.8%</td><td>0.995</td><td>3.86</td><td>26.9</td><td>2.1</td></tr>
+<tr><td class="l">betacraft — Hindi, temp 1</td><td>20.0%</td><td>7.8%</td><td>0.986</td><td>3.68</td><td>22.9</td><td>2.14</td></tr>
+</table>
+<p style="font-size:13px;color:var(--mut)">UTMOS is English-calibrated, so absolute values run low for Indic/
+synthetic speech — read it <b>relatively</b>. WER/CER against the known input script is the primary
+intelligibility metric. Marathi (2.6%) is far cleaner than Hindi (20%) — see Limitations.</p>
+
+<h2 id="temp">6 · The trailing-buzz problem, and the temperature fix</h2>
+<p><b>Symptom (heard by ear):</b> the default outputs had a <b>buzzing/echoey tail</b> at the end of
+sentences and the <b>voice timbre drifted from sentence to sentence</b>. <b>Root cause:</b> the default
+generation temperature is <b>1.0</b> (maximum randomness) with no fixed seed; Parler then often fails to
+emit a clean stop token and appends a hallucinated tail. <b>Fix:</b> lower the sampling
+<b>temperature to 0.7</b> and pin a per-sentence <b>seed (42)</b>, plus a 120 ms trailing fade. The metrics
+confirm it — temp 0.7 <b>improves every signal metric</b> with <b>no intelligibility cost</b>:</p>
+<table>
+<tr><th class="l">Setting</th><th>WER↓</th><th>PESQ↑</th><th>SI-SDR↑</th><th>UTMOS↑</th><th>Verdict</th></tr>
+<tr><td class="l">temp 1.0 (default)</td><td>3.0%</td><td>3.55</td><td>22.9</td><td>1.61</td><td class="warn">buzz + drift</td></tr>
+<tr><td class="l"><b>temp 0.7 seed 42</b></td><td><b>2.6%</b></td><td><b>3.86</b></td><td><b>26.9</b></td><td><b>2.1</b></td><td class="good">chosen — buzz gone</td></tr>
+<tr><td class="l">temp 0.5</td><td>—</td><td>3.41</td><td>19.8</td><td>2.21</td><td class="bad">tails return, slower</td></tr>
+<tr><td class="l">temp 0.3 (superhero)</td><td>—</td><td>2.03</td><td>1.2</td><td>2.82</td><td class="bad">heavy buzz (PESQ 2.03, SI-SDR 1.2)</td></tr>
+</table>
+<p>Lower is <b>not</b> better: at 0.5 and below, constraining the sampling makes the model fail to stop →
+runaway buzzy tails (PESQ collapses to 2.03, SI-SDR to 1.2 at temp 0.3). <b>Temperature 0.7 is the stable
+optimum.</b></p>
+
+<h2 id="audio">7 · Listen — samples, and before/after</h2>
+<h3>Short samples</h3>
+<div class="grid2">
+<div class="au"><div class="t">Sunita — Marathi (sample)</div><div class="d">single line</div><audio controls preload="none" src="audio/betacraft_sample_marathi.mp3"></audio></div>
+<div class="au"><div class="t">Divya — Hindi (sample)</div><div class="d">single line</div><audio controls preload="none" src="audio/betacraft_sample_hindi.mp3"></audio></div>
+</div>
+<h3>Full story — before vs after the temperature fix (same text: the crow story)</h3>
+<div class="grid2">
+<div class="au"><div class="t">BEFORE — temp 1.0 (default)</div><div class="d">buzz + timbre drift</div><audio controls preload="none" src="audio/betacraft_kawda_temp1.mp3"></audio></div>
+<div class="au"><div class="t">AFTER — temp 0.7 seed 42</div><div class="d">buzz removed, steadier</div><audio controls preload="none" src="audio/betacraft_kawda_temp07.mp3"></audio></div>
+</div>
+<h3>Full story — Hindi (Divya)</h3>
+<div class="au"><div class="t">Divya — Hindi full story (temp 1)</div><div class="d"></div><audio controls preload="none" src="audio/betacraft_hindi_temp1.mp3"></audio></div>
+
+<h2 id="limits">8 · Honest limitations</h2>
+<ul>
+<li><b>Sentence-to-sentence timbre drift.</b> Parler has no persistent speaker vector across independent
+sentence generations; the seed+temp fix reduces but does not eliminate it. This is architectural — decoding
+tuning cannot fully solve it (see the full research report for the FreeVC and IndicF5 attempts).</li>
+<li><b>Hindi lags Marathi</b> (WER 20% vs 3%) — the Hindi set is smaller (3.29 h vs 5.21 h) and Devanagari-
+Hindi Sarvam scoring is stricter here; Hindi is usable but not yet at Marathi's clarity.</li>
+<li><b>Input text must be clean</b> — markdown/dashes in a story title caused a mispronunciation ("राजू" →
+hallucinated "बाघ"); fixed by a text-sanitiser in the narration script.</li>
+</ul>
+
+<h2 id="explain">9 · How to read the graphs (plain language)</h2>
+<table>
+<tr><th class="l">Graph / term</th><th class="l">Meaning</th></tr>
+<tr><td class="l">train/loss, eval/loss</td><td class="l">How wrong the model's audio-token predictions are on training vs held-out clips. Falls then flattens = learning; eval turning up = overfitting.</td></tr>
+<tr><td class="l">codebook 0–8</td><td class="l">The codec stores 1 s of audio as 9 stacked token layers. Codebook 0 = coarsest &amp; most audible (watch it most); higher = fine detail.</td></tr>
+<tr><td class="l">CLAP</td><td class="l">Text↔audio alignment (0–1, higher = better) — a semantic "does the audio match the words/style" proxy.</td></tr>
+<tr><td class="l">WER / CER</td><td class="l">Word / character error rate vs the known script (lower = clearer). Our "accuracy" number — the TTS analog of mAP in detection.</td></tr>
+<tr><td class="l">UTMOS / SQUIM</td><td class="l">Predicted human naturalness (UTMOS 1–5) and signal quality (STOI/PESQ/SI-SDR). Reference-free.</td></tr>
+</table>
+<div class="note"><b>What we optimise vs a YOLO's mAP:</b> in detection you optimise one metric (mAP)
+directly. In TTS we <b>minimise a token-prediction loss during training, but a lower loss does not
+reliably mean better speech</b> — so loss is the training signal, and the quality verdict comes from
+<b>WER + UTMOS + human ears</b>, computed after training.</div>
+
+<footer>Generated 2026-07-07 · Indic Parler-TTS fine-tuning research · metrics: Sarvam Saaras WER/CER,
+TorchAudio SQUIM (STOI/PESQ/SI-SDR), UTMOS22, W&amp;B. Audio is 96 kbps mono MP3.</footer>
+</div></body></html>
