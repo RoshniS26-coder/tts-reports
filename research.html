@@ -260,6 +260,23 @@ narrator; UTMOS/SQUIM are secondary signal-quality checks.</div>
 <tr><td class="l">Human listening</td><td class="l">the project's ear notes (per version above)</td><td class="l">The final arbiter — captured verbatim across v1–v7</td></tr>
 </table>
 
+<h3>Evaluation metrics — one-line glossary</h3>
+<p>Every metric used in this report, what it stands for, what it measures, and how it's computed
+(↓ = lower is better, ↑ = higher is better):</p>
+<table>
+<tr><th class="l">Metric</th><th class="l">Stands for</th><th class="l">Meaning &amp; how it's calculated</th></tr>
+<tr><td>WER ↓</td><td class="l">Word Error Rate</td><td class="l">Intelligibility — are the spoken words correct. (word substitutions + insertions + deletions) ÷ reference words, comparing an STT transcript (Sarvam) to the known input script.</td></tr>
+<tr><td>CER ↓</td><td class="l">Character Error Rate</td><td class="l">Same idea at the character level (more robust for Devanagari) — character edit-distance ÷ reference characters.</td></tr>
+<tr><td>STOI ↑</td><td class="l">Short-Time Objective Intelligibility</td><td class="l">Predicted intelligibility (0–1) — correlation of short-time spectral envelopes; estimated reference-free by TorchAudio SQUIM.</td></tr>
+<tr><td>PESQ ↑</td><td class="l">Perceptual Evaluation of Speech Quality</td><td class="l">Predicted perceived audio quality (~1–4.5) — a perceptual model of the waveform; estimated reference-free by SQUIM.</td></tr>
+<tr><td>SI-SDR ↑</td><td class="l">Scale-Invariant Signal-to-Distortion Ratio</td><td class="l">Signal clarity vs distortion, in dB — 10·log₁₀(target-signal energy ÷ distortion energy), scale-invariant.</td></tr>
+<tr><td>UTMOS ↑</td><td class="l">UTokyo-SaruLab MOS predictor</td><td class="l">Predicted human naturalness score (1–5) — a neural net trained on human MOS ratings scores the clip (English-calibrated, so read it relatively).</td></tr>
+<tr><td>CLAP ↑</td><td class="l">Contrastive Language-Audio Pretraining</td><td class="l">Does the audio match the words/style (0–1) — cosine similarity of the text and audio embeddings from a CLAP model.</td></tr>
+<tr><td>Speaker-cosine ↑</td><td class="l">Speaker-embedding consistency</td><td class="l">Voice steadiness across sentences — mean pairwise cosine of per-sentence speaker voiceprints (Resemblyzer); higher = less drift.</td></tr>
+<tr><td>eval/loss ↓</td><td class="l">Cross-entropy loss</td><td class="l">Training signal — mean negative log-likelihood of predicting the audio-codec tokens on held-out clips; a weak proxy for perceived quality.</td></tr>
+</table>
+
+
 </section><section id="infra"><h2><span class="n">8</span>Infrastructure &amp; effort (with reasons)</h2>
 <ul>
 <li><b>Training — RunPod GPU.</b> v7 ran on an <b>RTX A5000 (24 GB, $0.27/hr)</b>, chosen over an L4
