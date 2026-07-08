@@ -112,9 +112,13 @@ steps, yet muddled — and highest CLAP but worst WER (confident-sounding, less 
 <div class="card"><b>v5 (cleaned, balanced)</b> — "Overall quality DEGRADED, but Sunita timbre improved;
 word-mixing persisted ('pani' → 'mani'); Hindi narration good." <span class="d" style="color:var(--mut)">
 (metrics-only — no separate audio embedded)</span></div>
-<div class="card"><b>v6 (drop Maya — BEST) </b> — "BEST run. Hindi (Divya) VERY good vs base model; Marathi
-Sunita clear; sub-100 WER for the first time." Divya's Hindi is called the standout of the project.
-<span class="d" style="color:var(--mut)">(metrics-only — no separate audio embedded)</span></div>
+<div class="card"><b>v6 (drop Maya — BEST scraped-data baseline)</b> — "BEST run. Hindi (Divya) VERY good vs
+base model; Marathi Sunita clear; sub-100 WER for the first time." Divya's Hindi is the standout of the
+project. <b>Head-to-head with v7 on the same two stories</b> (reliable Sarvam WER + speaker-cosine
+consistency): <b>Marathi — v7 wins</b> (WER 2.6% vs v6 4.5%; consistency 0.738 vs 0.693); <b>Hindi — v6
+wins</b> (WER 13.9% vs v7 20%; consistency 0.751 vs 0.722). So the copyright-safe synthetic v7 <b>overtakes
+v6 on Marathi</b> but v6's real-data <b>Hindi still leads</b>.
+<div class="grid2" style="margin-top:10px"><div class="au"><div class="t">v6 — Sunita, Marathi (kawda story)</div><div class="d">scraped-data baseline · Sarvam WER 4.5%</div><audio controls preload="none" src="audio/v6_sunita_kawda.mp3"></audio></div><div class="au"><div class="t">v6 — Divya, Hindi (the standout)</div><div class="d">Sarvam WER 13.9% · beats v7 Hindi</div><audio controls preload="none" src="audio/v6_divya_hindi.mp3"></audio></div></div></div>
 <h3>Reference points (baselines &amp; teacher)</h3>
 <div class="grid2">
 <div class="au"><div class="t">Pretrained Indic-Parler (no fine-tune)</div><div class="d">baseline — lion</div><audio controls preload="none" src="audio/baseline_pretrained_lion.mp3"></audio></div>
