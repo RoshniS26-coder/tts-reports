@@ -114,10 +114,20 @@ word-mixing persisted ('pani' → 'mani'); Hindi narration good." <span class="d
 (metrics-only — no separate audio embedded)</span></div>
 <div class="card"><b>v6 (drop Maya — BEST scraped-data baseline)</b> — "BEST run. Hindi (Divya) VERY good vs
 base model; Marathi Sunita clear; sub-100 WER for the first time." Divya's Hindi is the standout of the
-project. <b>Head-to-head with v7 on the same two stories</b> (reliable Sarvam WER + speaker-cosine
-consistency): <b>Marathi — v7 wins</b> (WER 2.6% vs v6 4.5%; consistency 0.738 vs 0.693); <b>Hindi — v6
-wins</b> (WER 13.9% vs v7 20%; consistency 0.751 vs 0.722). So the copyright-safe synthetic v7 <b>overtakes
-v6 on Marathi</b> but v6's real-data <b>Hindi still leads</b>.
+project.
+<h3>v6 vs v7 — head-to-head on the same two stories</h3>
+<p>Reliable Sarvam WER (lower = better) and speaker-cosine consistency (higher = better), measured on the
+identical crow (Marathi) and Hindi stories:</p>
+<table>
+<tr><th class="l">Story / metric</th><th>v6 (scraped)</th><th>v7 (synthetic)</th><th>Winner</th></tr>
+<tr><td class="l">Marathi — WER ↓</td><td>4.5%</td><td><b>2.6%</b></td><td class="good">v7 ✅</td></tr>
+<tr><td class="l">Marathi — consistency ↑</td><td>0.693</td><td><b>0.738</b></td><td class="good">v7 ✅</td></tr>
+<tr><td class="l">Hindi — WER ↓</td><td><b>13.9%</b></td><td>20%</td><td class="warn">v6 ✅</td></tr>
+<tr><td class="l">Hindi — consistency ↑</td><td><b>0.751</b></td><td>0.722</td><td class="warn">v6 ✅</td></tr>
+</table>
+<p>The copyright-safe synthetic <b>v7 overtakes v6 on Marathi</b> (both intelligibility and voice
+consistency); v6's real-data <b>Hindi still leads</b> — consistent with Divya's Hindi being the project's
+standout result.</p>
 <div class="grid2" style="margin-top:10px"><div class="au"><div class="t">v6 — Sunita, Marathi (kawda story)</div><div class="d">scraped-data baseline · Sarvam WER 4.5%</div><audio controls preload="none" src="audio/v6_sunita_kawda.mp3"></audio></div><div class="au"><div class="t">v6 — Divya, Hindi (the standout)</div><div class="d">Sarvam WER 13.9% · beats v7 Hindi</div><audio controls preload="none" src="audio/v6_divya_hindi.mp3"></audio></div></div></div>
 <h3>Reference points (baselines &amp; teacher)</h3>
 <div class="grid2">
