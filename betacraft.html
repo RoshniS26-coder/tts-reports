@@ -151,6 +151,24 @@ copyright-safe synthetic distillation preserved the teacher's clarity.</div>
 synthetic speech — read it <b>relatively</b>. WER/CER against the known input script is the primary
 intelligibility metric. Marathi (2.6%) is far cleaner than Hindi (20%) — see Limitations.</p>
 
+<h3>Cross-version benchmark — how betacraft (v7) compares to every prior version</h3>
+<p>Marathi, Sunita voice. <b>v5 / v6 / v7 are on the same crow (kawda) story</b> — directly comparable;
+<b>v1 / v3 predate that eval story</b> (measured on the longer/harder superhero story, so their WER is not
+cross-comparable to the kawda group — the trend and reference-free audio metrics still are).</p>
+<table>
+<tr><th class="l">Version</th><th>Eval story</th><th>WER↓</th><th>CER↓</th><th>PESQ↑</th><th>SI-SDR↑</th><th>UTMOS↑</th></tr>
+<tr><td class="l">Gemini-Sulafat (teacher / ceiling)</td><td>—</td><td>4.5%</td><td>0.4%</td><td>3.79</td><td>25.0</td><td>3.08</td></tr>
+<tr><td class="l">v1 — PoC (Sunita, ~16 min)</td><td>superhero</td><td>28.4%</td><td>15.4%</td><td>3.22</td><td>25.9</td><td>1.44</td></tr>
+<tr><td class="l">v2/v3 — 4-speaker scale-up</td><td>superhero</td><td>25.6%</td><td>12.5%</td><td>3.43</td><td>24.4</td><td>1.45</td></tr>
+<tr><td class="l">v5 — cleaned / balanced</td><td>kawda</td><td>6.8%</td><td>2.1%</td><td>3.16</td><td>25.9</td><td>1.48</td></tr>
+<tr><td class="l">v6 — best scraped baseline</td><td>kawda</td><td>4.5%</td><td>2.0%</td><td>3.47</td><td>25.7</td><td>1.54</td></tr>
+<tr><td class="l"><b>v7 — mar-hin-betacraft (this model)</b></td><td>kawda</td><td class="good"><b>2.6%</b></td><td>0.8%</td><td><b>3.86</b></td><td><b>26.9</b></td><td><b>2.10</b></td></tr>
+</table>
+<div class="note ok"><b>Clear generational gains.</b> UTMOS climbs monotonically 1.44 → 1.45 → 1.48 → 1.54 →
+<b>2.10</b> toward the teacher's 3.08; on the shared kawda story WER falls <b>6.8% → 4.5% → 2.6%</b>
+(v5 → v6 → v7). <b>betacraft (v7) is the best version on every audio metric</b> and the closest to the
+Gemini teacher — achieved on copyright-safe synthetic data.</div>
+
 </section><section id="temp"><h2><span class="n">6</span>Voice consistency &amp; the trailing buzz — and how we fixed them</h2>
 
 <h3>6.1 Sentence-to-sentence voice drift (measured)</h3>
