@@ -219,6 +219,24 @@ decoding.</div>
 </section><section id="scoreboard"><h2><span class="n">6</span>Objective metrics — reliable scoreboard</h2>
 <p>Sarvam Saaras (Indic-native STT) WER/CER against the known script, plus reference-free SQUIM + UTMOS.
 This replaces the unreliable English-Whisper WER used inside training.</p>
+<h3>Cross-version benchmark — the fine-tuning progression (v1 → v7)</h3>
+<p>Marathi, Sunita voice. <b>v5 / v6 / v7 are on the same crow (kawda) story</b> — directly comparable;
+<b>v1 / v3 predate that eval story</b> and are measured on the superhero story (longer/harder, so their WER
+is not cross-comparable to the kawda group — but the trend and the reference-free audio metrics are).</p>
+<table>
+<tr><th class="l">Version</th><th>Eval story</th><th>WER↓</th><th>CER↓</th><th>PESQ↑</th><th>SI-SDR↑</th><th>UTMOS↑</th></tr>
+<tr><td class="l">Gemini-Sulafat (teacher / ceiling)</td><td>—</td><td>4.5%</td><td>0.4%</td><td>3.79</td><td>25.0</td><td>3.08</td></tr>
+<tr><td class="l">v1 — PoC (Sunita, ~16 min)</td><td>superhero</td><td>28.4%</td><td>15.4%</td><td>3.22</td><td>25.9</td><td>1.44</td></tr>
+<tr><td class="l">v2/v3 — 4-speaker scale-up</td><td>superhero</td><td>25.6%</td><td>12.5%</td><td>3.43</td><td>24.4</td><td>1.45</td></tr>
+<tr><td class="l">v5 — cleaned / balanced</td><td>kawda</td><td>6.8%</td><td>2.1%</td><td>3.16</td><td>25.9</td><td>1.48</td></tr>
+<tr><td class="l">v6 — best scraped baseline</td><td>kawda</td><td>4.5%</td><td>2.0%</td><td>3.47</td><td>25.7</td><td>1.54</td></tr>
+<tr><td class="l"><b>v7 — mar-hin-betacraft (synthetic)</b></td><td>kawda</td><td class="good"><b>2.6%</b></td><td>0.8%</td><td><b>3.86</b></td><td><b>26.9</b></td><td><b>2.10</b></td></tr>
+</table>
+<div class="note ok"><b>Clear generational gains.</b> UTMOS (predicted naturalness) climbs monotonically
+1.44 → 1.45 → 1.48 → 1.54 → <b>2.10</b>, toward the teacher's 3.08; on the shared kawda story WER falls
+<b>6.8% → 4.5% → 2.6%</b> (v5 → v6 → v7). The copyright-safe synthetic <b>v7 is the best version on every
+audio metric</b> and the closest to the Gemini teacher.</div>
+<h3>Same-story detail (teacher · v7 · trials)</h3>
 <table>
 <tr><th class="l">Voice / trial</th><th>Sarvam WER↓</th><th>CER↓</th><th>PESQ↑</th><th>SI-SDR↑</th><th>UTMOS↑</th></tr>
 <tr><td class="l"><b>Gemini-Sulafat (teacher / ceiling)</b></td><td>4.5%</td><td>0.4%</td><td>3.79</td><td>25.0</td><td>3.08</td></tr>
